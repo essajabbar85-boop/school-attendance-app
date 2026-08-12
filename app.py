@@ -23,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# تنسيقات CSS لمنع تكديس العناصر ولتحسين العرض على الموبايل
+# تنسيقات CSS متوافقة مع الوضع الليلي والفهاري مع تحديد لون النص بوضوح
 st.markdown(
     """
     <style>
@@ -33,28 +33,40 @@ st.markdown(
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
+    /* ضبط البطاقة ولون النص ليعمل بشكل ممتازل على الوضع الليلي والعادي */
+    .teacher-card {
+        background-color: #2b303a;
+        color: #ffffff !important;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border-right: 5px solid #4169E1;
+        font-size: 16px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .teacher-card b {
+        color: #ffffff !important;
+    }
+
+    .status-tag {
+        color: #ffd166 !important;
+        font-weight: bold;
+    }
+    
     /* منع تكديس الأعمدة بطريقة مشوهة في الهواتف */
     [data-testid="stHorizontalBlock"] {
         align-items: center;
         gap: 0.3rem !important;
+        margin-bottom: 12px;
     }
     
-    /* تحسين حجم الأزرار وتراصفها */
+    /* تحسين شكل الأزرار */
     .stButton > button {
         width: 100%;
-        padding: 4px 8px;
-        font-size: 13px;
+        padding: 6px 10px;
+        font-size: 14px;
         border-radius: 6px;
-    }
-    
-    /* بطاقة لكل مدرس */
-    .teacher-card {
-        background-color: #f8f9fa;
-        padding: 10px 15px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        border-right: 4px solid #4169E1;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     
     [data-testid="column"] {
@@ -142,21 +154,25 @@ if "attendance" not in st.session_state:
 
 # العنوان الرئيسي
 st.markdown(
-    "<h2 style='text-align: center; color: #1D3557;'>🏫 ثانوية خير الأنام"
+    "<h2 style='text-align: center; color: #64DFDF;'>🏫 ثانوية خير الأنام"
     " للبنين</h2>",
     unsafe_allow_html=True,
 )
 st.markdown(
-    "<h4 style='text-align: center; color: #457B9D;'>سجل الحضور والغياب"
+    "<h4 style='text-align: center; color: #4EA8DE;'>سجل الحضور والغياب"
     " اليومي</h4>",
     unsafe_allow_html=True,
 )
 st.write("---")
 
-# عرض القائمة بتصميم بطاقات متجاوب للموبايل
+# عرض القائمة بتصميم متوافق مع الموبايل والنمط المظلم
 for idx, name in enumerate(teachers_list, 1):
   status_info = st.session_state.attendance.get(name, None)
-  status_text = f" | <b>الحالة:</b> {status_info[0]}" if status_info else ""
+  status_text = (
+      f" <span class='status-tag'>[الحالة: {status_info[0]}]</span>"
+      if status_info
+      else ""
+  )
 
   st.markdown(
       f"<div class='teacher-card'><b>{idx}. {name}</b>{status_text}</div>",
