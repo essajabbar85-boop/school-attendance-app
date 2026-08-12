@@ -23,26 +23,41 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# تنسيقات CSS متوافقة مع الوضع الليلي والفهاري مع تحديد لون النص بوضوح
+# تصميم خلفية متحركة وتنسيقات أنيقة
 st.markdown(
     """
     <style>
-    html, body, [class*="css"], .stApp {
+    /* خلفية متدرجة ومتحركة */
+    .stApp {
+        background: linear-gradient(-45deg, #0f172a, #1e293b, #0f2027, #203a43);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
         direction: rtl;
         text-align: right;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    /* ضبط البطاقة ولون النص ليعمل بشكل ممتازل على الوضع الليلي والعادي */
+
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* محاذاة النص والأسماء إلى اليمين بالكامل */
     .teacher-card {
-        background-color: #2b303a;
+        background: rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #ffffff !important;
-        padding: 12px 16px;
-        border-radius: 8px;
+        padding: 12px 18px;
+        border-radius: 12px;
         margin-bottom: 8px;
-        border-right: 5px solid #4169E1;
-        font-size: 16px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        border-right: 5px solid #38bdf8;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 17px;
+        text-align: right !important;
+        direction: rtl !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
     
     .teacher-card b {
@@ -50,27 +65,37 @@ st.markdown(
     }
 
     .status-tag {
-        color: #ffd166 !important;
+        color: #facc15 !important;
         font-weight: bold;
+        float: left;
     }
-    
-    /* منع تكديس الأعمدة بطريقة مشوهة في الهواتف */
+
+    /* ضبط شبكة الأزرار */
     [data-testid="stHorizontalBlock"] {
         align-items: center;
-        gap: 0.3rem !important;
-        margin-bottom: 12px;
+        gap: 0.4rem !important;
+        margin-bottom: 14px;
+        direction: rtl !important;
     }
     
     /* تحسين شكل الأزرار */
     .stButton > button {
         width: 100%;
-        padding: 6px 10px;
+        padding: 8px 12px;
         font-size: 14px;
-        border-radius: 6px;
+        font-weight: 600;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #f8fafc;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transition: all 0.3s ease;
     }
-    
-    [data-testid="column"] {
-        text-align: right;
+
+    .stButton > button:hover {
+        background: rgba(56, 189, 248, 0.2);
+        border-color: #38bdf8;
+        color: #ffffff;
+        transform: translateY(-2px);
     }
     </style>
 """,
@@ -154,28 +179,28 @@ if "attendance" not in st.session_state:
 
 # العنوان الرئيسي
 st.markdown(
-    "<h2 style='text-align: center; color: #64DFDF;'>🏫 ثانوية خير الأنام"
-    " للبنين</h2>",
+    "<h2 style='text-align: center; color: #38bdf8; font-weight: 700;'>🏫 ثانوية"
+    " خير الأنام للبنين</h2>",
     unsafe_allow_html=True,
 )
 st.markdown(
-    "<h4 style='text-align: center; color: #4EA8DE;'>سجل الحضور والغياب"
-    " اليومي</h4>",
+    "<h5 style='text-align: center; color: #94a3b8;'>سجل الحضور والغياب"
+    " اليومي</h5>",
     unsafe_allow_html=True,
 )
 st.write("---")
 
-# عرض القائمة بتصميم متوافق مع الموبايل والنمط المظلم
+# عرض قائمة الأسماء
 for idx, name in enumerate(teachers_list, 1):
   status_info = st.session_state.attendance.get(name, None)
-  status_text = (
-      f" <span class='status-tag'>[الحالة: {status_info[0]}]</span>"
+  status_html = (
+      f"<span class='status-tag'>[{status_info[0]}]</span>"
       if status_info
       else ""
   )
 
   st.markdown(
-      f"<div class='teacher-card'><b>{idx}. {name}</b>{status_text}</div>",
+      f"<div class='teacher-card'>{status_html}<b>{idx}. {name}</b></div>",
       unsafe_allow_html=True,
   )
 
