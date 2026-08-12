@@ -18,20 +18,45 @@ from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Table, Table
 
 # إعدادات الصفحة
 st.set_page_config(
-    page_title="ثانوية خير الأنام للبنين - سجل الحضور", layout="centered"
+    page_title="ثانوية خير الأنام للبنين - سجل الحضور",
+    layout="centered",
+    initial_sidebar_state="collapsed",
 )
 
-# اتجاه الواجهة من اليمين إلى اليسار (RTL)
+# تنسيقات CSS لمنع تكديس العناصر ولتحسين العرض على الموبايل
 st.markdown(
     """
     <style>
     html, body, [class*="css"], .stApp {
         direction: rtl;
         text-align: right;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+    
+    /* منع تكديس الأعمدة بطريقة مشوهة في الهواتف */
+    [data-testid="stHorizontalBlock"] {
+        align-items: center;
+        gap: 0.3rem !important;
+    }
+    
+    /* تحسين حجم الأزرار وتراصفها */
     .stButton > button {
         width: 100%;
+        padding: 4px 8px;
+        font-size: 13px;
+        border-radius: 6px;
     }
+    
+    /* بطاقة لكل مدرس */
+    .teacher-card {
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border-right: 4px solid #4169E1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
     [data-testid="column"] {
         text-align: right;
     }
@@ -40,14 +65,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# تنزيل خط عربي صحيح تلقائياً إذا لم يكن موجوداً
+# تنزيل خط عربي صحيح تلقائياً للـ PDF
 FONT_PATH = "Amiri-Regular.ttf"
 FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Regular.ttf"
 
 if not os.path.exists(FONT_PATH):
   try:
     urllib.request.urlretrieve(FONT_URL, FONT_PATH)
-  except Exception as e:
+  except Exception:
     pass
 
 
@@ -115,44 +140,59 @@ teachers_list = [
 if "attendance" not in st.session_state:
   st.session_state.attendance = {}
 
-st.title("🏫 ثانوية خير الأنام للبنين")
-st.subheader("سجل الحضور والغياب اليومي")
+# العنوان الرئيسي
+st.markdown(
+    "<h2 style='text-align: center; color: #1D3557;'>🏫 ثانوية خير الأنام"
+    " للبنين</h2>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    "<h4 style='text-align: center; color: #457B9D;'>سجل الحضور والغياب"
+    " اليومي</h4>",
+    unsafe_allow_html=True,
+)
 st.write("---")
 
+# عرض القائمة بتصميم بطاقات متجاوب للموبايل
 for idx, name in enumerate(teachers_list, 1):
-  col1, col2, col3, col4, col5 = st.columns([1, 4, 2, 2, 2])
+  status_info = st.session_state.attendance.get(name, None)
+  status_text = f" | <b>الحالة:</b> {status_info[0]}" if status_info else ""
 
-  col1.write(f"**{idx}**")
-  col2.write(f"**{name}**")
+  st.markdown(
+      f"<div class='teacher-card'><b>{idx}. {name}</b>{status_text}</div>",
+      unsafe_allow_html=True,
+  )
 
-  if col3.button("حضور", key=f"in_{idx}"):
+  c1, c2, c3 = st.columns(3)
+
+  if c1.button("✅ حضور", key=f"in_{idx}"):
     st.session_state.attendance[name] = (
         "حضور",
         datetime.now().strftime("%I:%M:%S %p"),
     )
-    st.success(f"تم تسجيل حضور: {name}")
+    st.rerun()
 
-  if col4.button("انصراف", key=f"out_{idx}"):
+  if c2.button("🏃 انصراف", key=f"out_{idx}"):
     st.session_state.attendance[name] = (
         "انصراف",
         datetime.now().strftime("%I:%M:%S %p"),
     )
-    st.warning(f"تم تسجيل انصراف: {name}")
+    st.rerun()
 
-  if col5.button("إجازة", key=f"leave_{idx}"):
+  if c3.button("📝 إجازة", key=f"leave_{idx}"):
     st.session_state.attendance[name] = (
         "إجازة",
         datetime.now().strftime("%I:%M:%S %p"),
     )
-    st.info(f"تم تسجيل إجازة: {name}")
+    st.rerun()
 
 
+# دالة إنشاء ملف الـ PDF
 def generate_pdf():
   buffer = io.BytesIO()
   now = datetime.now()
   today_str = now.strftime("%Y-%m-%d")
 
-  # تسجيل الخط العربي
   if os.path.exists(FONT_PATH):
     try:
       pdfmetrics.registerFont(TTFont("ArabicFont", FONT_PATH))
@@ -164,7 +204,6 @@ def generate_pdf():
 
   elements = []
 
-  # الشعار
   logo_path = "logo.png"
   if os.path.exists(logo_path):
     img = Image(logo_path, width=42, height=42)
