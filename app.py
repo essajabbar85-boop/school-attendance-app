@@ -1,12 +1,13 @@
-import csv
 from datetime import datetime
 import io
 import os
+import urllib.request
 import streamlit as st
 
 # مكتبات المعالجة العربية
 import arabic_reshaper
 from bidi.algorithm import get_display
+
 # مكتبات ReportLab
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -17,32 +18,37 @@ from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Table, Table
 
 # إعدادات الصفحة
 st.set_page_config(
-    page_title="ثانوية خير الأنام للبنين - سجل الحضور",
-    layout="centered"
+    page_title="ثانوية خير الأنام للبنين - سجل الحضور", layout="centered"
 )
 
-# ==========================================
-#  تنسيق اتجاه الصفحة والمكونات من اليمين إلى اليسار (RTL)
-# ==========================================
-st.markdown("""
+# اتجاه الواجهة من اليمين إلى اليسار (RTL)
+st.markdown(
+    """
     <style>
-    /* جعل اتجاه الصفحة والنصوص من اليمين إلى اليسار */
     html, body, [class*="css"], .stApp {
         direction: rtl;
         text-align: right;
     }
-    
-    /* محاذاة العناوين والأزرار والأعمدة */
     .stButton > button {
         width: 100%;
     }
-    
-    /* ضبط اتجاه ترتيب أعمدة Streamlit */
     [data-testid="column"] {
         text-align: right;
     }
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
+
+# تنزيل خط عربي صحيح تلقائياً إذا لم يكن موجوداً
+FONT_PATH = "Amiri-Regular.ttf"
+FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/amiri/Amiri-Regular.ttf"
+
+if not os.path.exists(FONT_PATH):
+  try:
+    urllib.request.urlretrieve(FONT_URL, FONT_PATH)
+  except Exception as e:
+    pass
 
 
 def ar(text):
@@ -65,7 +71,6 @@ def get_arabic_day_name(day_name_en):
   return days_map.get(day_name_en, day_name_en)
 
 
-# قائمة المدرسين
 teachers_list = [
     "عيسى عبد الجبار إبراهيم",
     "نيزك مهند محمد",
@@ -107,7 +112,6 @@ teachers_list = [
     "زينب عامر سعيد",
 ]
 
-# تهيئة حالة الحضور
 if "attendance" not in st.session_state:
   st.session_state.attendance = {}
 
@@ -115,10 +119,9 @@ st.title("🏫 ثانوية خير الأنام للبنين")
 st.subheader("سجل الحضور والغياب اليومي")
 st.write("---")
 
-# عرض جدول تسجيل الحضور مرتباً من اليمين إلى اليسار (ت - اسم المدرس - أزرار التسجيل)
 for idx, name in enumerate(teachers_list, 1):
   col1, col2, col3, col4, col5 = st.columns([1, 4, 2, 2, 2])
-  
+
   col1.write(f"**{idx}**")
   col2.write(f"**{name}**")
 
@@ -144,23 +147,27 @@ for idx, name in enumerate(teachers_list, 1):
     st.info(f"تم تسجيل إجازة: {name}")
 
 
-# دالة إنشاء الـ PDF
 def generate_pdf():
   buffer = io.BytesIO()
   now = datetime.now()
   today_str = now.strftime("%Y-%m-%d")
 
-  # تسجيل الخط العربي المحلي
-  font_filename = "arabic_font.ttf"
-  if os.path.exists(font_filename):
-    pdfmetrics.registerFont(TTFont("CustomArabicFont", font_filename))
-    pdf_font = "CustomArabicFont"
+  # تسجيل الخط العربي
+  if os.path.exists(FONT_PATH):
+    try:
+      pdfmetrics.registerFont(TTFont("ArabicFont", FONT_PATH))
+      pdf_font = "ArabicFont"
+    except Exception:
+      pdf_font = "Helvetica"
   else:
     pdf_font = "Helvetica"
 
   elements = []
-  if os.path.exists("logo.png"):
-    img = Image("logo.png", width=42, height=42)
+
+  # الشعار
+  logo_path = "logo.png"
+  if os.path.exists(logo_path):
+    img = Image(logo_path, width=42, height=42)
     img.hAlign = "CENTER"
     elements.append(img)
 
