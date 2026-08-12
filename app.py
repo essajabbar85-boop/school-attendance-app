@@ -18,8 +18,32 @@ from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Table, Table
 
 # إعدادات الصفحة
 st.set_page_config(
-    page_title="ثانوية خير الأنام للبنين - سجل الحضور", layout="centered"
+    page_title="ثانوية خير الأنام للبنين - سجل الحضور",
+    layout="centered"
 )
+
+# ==========================================
+#  تنسيق اتجاه الصفحة والمكونات من اليمين إلى اليسار (RTL)
+# ==========================================
+st.markdown("""
+    <style>
+    /* جعل اتجاه الصفحة والنصوص من اليمين إلى اليسار */
+    html, body, [class*="css"], .stApp {
+        direction: rtl;
+        text-align: right;
+    }
+    
+    /* محاذاة العناوين والأزرار والأعمدة */
+    .stButton > button {
+        width: 100%;
+    }
+    
+    /* ضبط اتجاه ترتيب أعمدة Streamlit */
+    [data-testid="column"] {
+        text-align: right;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 
 def ar(text):
@@ -84,7 +108,7 @@ teachers_list = [
     "زينب عامر سعيد",
 ]
 
-# تهيئة حالة الحضور والتسجيل
+# تهيئة حالة الحضور
 if "attendance" not in st.session_state:
   st.session_state.attendance = {}
 
@@ -92,9 +116,10 @@ st.title("🏫 ثانوية خير الأنام للبنين")
 st.subheader("سجل الحضور والغياب اليومي")
 st.write("---")
 
-# عرض جدول المدرسين مع أزرار التسجيل
+# عرض جدول تسجيل الحضور مرتباً من اليمين إلى اليسار (ت - اسم المدرس - أزرار التسجيل)
 for idx, name in enumerate(teachers_list, 1):
   col1, col2, col3, col4, col5 = st.columns([1, 4, 2, 2, 2])
+  
   col1.write(f"**{idx}**")
   col2.write(f"**{name}**")
 
@@ -120,26 +145,19 @@ for idx, name in enumerate(teachers_list, 1):
     st.info(f"تم تسجيل إجازة: {name}")
 
 
-# دالة توليد ملف PDF في الذاكرة
+# دالة إنشاء الـ PDF
 def generate_pdf():
   buffer = io.BytesIO()
   now = datetime.now()
   today_str = now.strftime("%Y-%m-%d")
 
-  font_path = "C:/Windows/Fonts/arial.ttf"
-  font_bold_path = "C:/Windows/Fonts/arialbd.ttf"
-
-  if os.path.exists(font_path):
-    pdfmetrics.registerFont(TTFont("ArabicFont", font_path))
-    if os.path.exists(font_bold_path):
-      pdfmetrics.registerFont(TTFont("ArabicFont-Bold", font_bold_path))
-      pdf_font_bold = "ArabicFont-Bold"
-    else:
-      pdf_font_bold = "ArabicFont"
-    pdf_font = "ArabicFont"
+  # تسجيل الخط العربي المحلي
+  font_filename = "arabic_font.ttf"
+  if os.path.exists(font_filename):
+    pdfmetrics.registerFont(TTFont("CustomArabicFont", font_filename))
+    pdf_font = "CustomArabicFont"
   else:
     pdf_font = "Helvetica"
-    pdf_font_bold = "Helvetica-Bold"
 
   elements = []
   if os.path.exists("logo.png"):
@@ -151,7 +169,7 @@ def generate_pdf():
   style_school = ParagraphStyle(
       "SchoolHeader",
       parent=styles["Normal"],
-      fontName=pdf_font_bold,
+      fontName=pdf_font,
       fontSize=13,
       leading=15,
       textColor=colors.HexColor("#B8860B"),
@@ -160,7 +178,7 @@ def generate_pdf():
   style_title = ParagraphStyle(
       "TitleHeader",
       parent=styles["Normal"],
-      fontName=pdf_font_bold,
+      fontName=pdf_font,
       fontSize=12,
       leading=14,
       textColor=colors.HexColor("#002B66"),
@@ -169,7 +187,7 @@ def generate_pdf():
   style_date = ParagraphStyle(
       "DateHeader",
       parent=styles["Normal"],
-      fontName=pdf_font_bold,
+      fontName=pdf_font,
       fontSize=11,
       leading=13,
       textColor=colors.HexColor("#002B66"),
@@ -192,15 +210,12 @@ def generate_pdf():
       ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4169E1")),
       ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
       ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-      ("FONTNAME", (0, 0), (-1, 0), pdf_font_bold),
+      ("FONTNAME", (0, 0), (-1, -1), pdf_font),
       ("FONTSIZE", (0, 0), (-1, -1), 9),
       ("TOPPADDING", (0, 0), (-1, -1), 2.8),
       ("BOTTOMPADDING", (0, 0), (-1, -1), 2.8),
       ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#F0F4F8")),
       ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#1D3557")),
-      ("FONTNAME", (3, 1), (3, -1), pdf_font_bold),
-      ("FONTNAME", (0, 1), (2, -1), pdf_font),
-      ("FONTNAME", (4, 1), (4, -1), pdf_font),
   ]
 
   for idx, name in enumerate(teachers_list, 1):
@@ -213,9 +228,6 @@ def generate_pdf():
       row_index = len(table_data)
       style_cmds.append(
           ("TEXTCOLOR", (1, row_index), (1, row_index), colors.red)
-      )
-      style_cmds.append(
-          ("FONTNAME", (1, row_index), (1, row_index), pdf_font_bold)
       )
 
     table_data.append(
@@ -240,10 +252,6 @@ def generate_pdf():
 
 
 st.write("---")
-
-# ==========================================
-#  زر التصدير والتحميل المباشر (st.download_button)
-# ==========================================
 pdf_file_buffer = generate_pdf()
 
 st.download_button(
