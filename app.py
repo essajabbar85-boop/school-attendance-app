@@ -7,7 +7,6 @@ import streamlit as st
 # مكتبات المعالجة العربية
 import arabic_reshaper
 from bidi.algorithm import get_display
-
 # مكتبات ReportLab
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
