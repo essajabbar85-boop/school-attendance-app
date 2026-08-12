@@ -23,15 +23,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# تصميم خلفية متحركة وتنسيقات أنيقة
+# تصميم خلفية متحركة بتباين أعلى وتنسيقات أنيقة
 st.markdown(
     """
     <style>
-    /* خلفية متدرجة ومتحركة */
+    /* خلفية متدرجة بمستويات تباين عالية وحركة أسرع وأوضح */
     .stApp {
-        background: linear-gradient(-45deg, #0f172a, #1e293b, #0f2027, #203a43);
+        background: linear-gradient(-45deg, #0f172a, #1e1b4b, #0369a1, #312e81, #0f172a);
         background-size: 400% 400%;
-        animation: gradientBG 15s ease infinite;
+        animation: gradientBG 8s ease infinite;
         direction: rtl;
         text-align: right;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -43,21 +43,21 @@ st.markdown(
         100% { background-position: 0% 50%; }
     }
 
-    /* محاذاة النص والأسماء إلى اليمين بالكامل */
+    /* بطاقة المدرس المحاذاة لليمين مع خلفية زجاجية بتباين ممتاز */
     .teacher-card {
-        background: rgba(255, 255, 255, 0.07);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         color: #ffffff !important;
         padding: 12px 18px;
         border-radius: 12px;
         margin-bottom: 8px;
         border-right: 5px solid #38bdf8;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
         font-size: 17px;
         text-align: right !important;
         direction: rtl !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
     }
     
     .teacher-card b {
@@ -78,24 +78,42 @@ st.markdown(
         direction: rtl !important;
     }
     
-    /* تحسين شكل الأزرار */
+    /* تحسين شكل الأزرار بتأثير متألق عند المرور */
     .stButton > button {
         width: 100%;
         padding: 8px 12px;
         font-size: 14px;
         font-weight: 600;
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.1);
         color: #f8fafc;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         transition: all 0.3s ease;
     }
 
     .stButton > button:hover {
-        background: rgba(56, 189, 248, 0.2);
+        background: rgba(56, 189, 248, 0.35);
         border-color: #38bdf8;
         color: #ffffff;
         transform: translateY(-2px);
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+
+    /* زر التصدير العلوي المميز */
+    .download-btn-container [data-testid="stDownloadButton"] > button {
+        background: linear-gradient(90deg, #0284c7, #2563eb);
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+    
+    .download-btn-container [data-testid="stDownloadButton"] > button:hover {
+        background: linear-gradient(90deg, #0369a1, #1d4ed8);
+        transform: scale(1.02);
     }
     </style>
 """,
@@ -176,56 +194,6 @@ teachers_list = [
 
 if "attendance" not in st.session_state:
   st.session_state.attendance = {}
-
-# العنوان الرئيسي
-st.markdown(
-    "<h2 style='text-align: center; color: #38bdf8; font-weight: 700;'>🏫 ثانوية"
-    " خير الأنام للبنين</h2>",
-    unsafe_allow_html=True,
-)
-st.markdown(
-    "<h5 style='text-align: center; color: #94a3b8;'>سجل الحضور والغياب"
-    " اليومي</h5>",
-    unsafe_allow_html=True,
-)
-st.write("---")
-
-# عرض قائمة الأسماء
-for idx, name in enumerate(teachers_list, 1):
-  status_info = st.session_state.attendance.get(name, None)
-  status_html = (
-      f"<span class='status-tag'>[{status_info[0]}]</span>"
-      if status_info
-      else ""
-  )
-
-  st.markdown(
-      f"<div class='teacher-card'>{status_html}<b>{idx}. {name}</b></div>",
-      unsafe_allow_html=True,
-  )
-
-  c1, c2, c3 = st.columns(3)
-
-  if c1.button("✅ حضور", key=f"in_{idx}"):
-    st.session_state.attendance[name] = (
-        "حضور",
-        datetime.now().strftime("%I:%M:%S %p"),
-    )
-    st.rerun()
-
-  if c2.button("🏃 انصراف", key=f"out_{idx}"):
-    st.session_state.attendance[name] = (
-        "انصراف",
-        datetime.now().strftime("%I:%M:%S %p"),
-    )
-    st.rerun()
-
-  if c3.button("📝 إجازة", key=f"leave_{idx}"):
-    st.session_state.attendance[name] = (
-        "إجازة",
-        datetime.now().strftime("%I:%M:%S %p"),
-    )
-    st.rerun()
 
 
 # دالة إنشاء ملف الـ PDF
@@ -337,12 +305,64 @@ def generate_pdf():
   return buffer
 
 
-st.write("---")
-pdf_file_buffer = generate_pdf()
+# العنوان الرئيسي
+st.markdown(
+    "<h2 style='text-align: center; color: #38bdf8; font-weight: 700;'>🏫 ثانوية"
+    " خير الأنام للبنين</h2>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    "<h5 style='text-align: center; color: #94a3b8;'>سجل الحضور والغياب"
+    " اليومي</h5>",
+    unsafe_allow_html=True,
+)
 
+# زر التصدير في أعلى الصفحة
+pdf_file_buffer = generate_pdf()
+st.markdown("<div class='download-btn-container'>", unsafe_allow_html=True)
 st.download_button(
     label="📄 تصدير وتحميل تقرير الـ PDF",
     data=pdf_file_buffer,
     file_name=f"تقرير_الحضور_{datetime.now().strftime('%Y-%m-%d')}.pdf",
     mime="application/pdf",
 )
+st.markdown("</div>", unsafe_allow_html=True)
+
+st.write("---")
+
+# عرض قائمة الأسماء
+for idx, name in enumerate(teachers_list, 1):
+  status_info = st.session_state.attendance.get(name, None)
+  status_html = (
+      f"<span class='status-tag'>[{status_info[0]}]</span>"
+      if status_info
+      else ""
+  )
+
+  st.markdown(
+      f"<div class='teacher-card'>{status_html}<b>{idx}. {name}</b></div>",
+      unsafe_allow_html=True,
+  )
+
+  c1, c2, c3 = st.columns(3)
+
+  if c1.button("✅ حضور", key=f"in_{idx}"):
+    st.session_state.attendance[name] = (
+        "حضور",
+        datetime.now().strftime("%I:%M:%S %p"),
+    )
+    st.rerun()
+
+  if c2.button("🏃 انصراف", key=f"out_{idx}"):
+    st.session_state.attendance[name] = (
+        "انصراف",
+        datetime.now().strftime("%I:%M:%S %p"),
+    )
+    st.rerun()
+
+  if c3.button("📝 إجازة", key=f"leave_{idx}"):
+    st.session_state.attendance[name] = (
+        "إجازة",
+        datetime.now().strftime("%I:%M:%S %p"),
+    )
+    st.rerun()
